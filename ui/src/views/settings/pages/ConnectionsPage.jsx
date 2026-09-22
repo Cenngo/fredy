@@ -4,11 +4,13 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Empty, Popconfirm, Table, Tag, Toast } from '@douyinfe/semi-ui-19';
-import { IconDelete } from '@douyinfe/semi-icons';
+import {Button, Empty, Popconfirm, Spin, Table, Tag, Toast, Typography} from '@douyinfe/semi-ui-19';
+import {IconDelete, IconRefresh} from '@douyinfe/semi-icons';
+
+const { Text } = Typography;
 
 import { SegmentPart } from '../../../components/segment/SegmentPart';
-import { xhrDelete, xhrGet, errorMessage } from '../../../services/xhr';
+import {xhrDelete, xhrGet, errorMessage, xhrPost} from '../../../services/xhr';
 import { useLocale, useTranslation } from '../../../services/i18n/i18n.jsx';
 import { format } from '../../../services/time/timeService';
 
@@ -31,6 +33,8 @@ export default function ConnectionsPage() {
   const locale = useLocale();
   const [grants, setGrants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const[apiTokenLoading, setApiTokenLoading] = useState(false);
+  const [apiToken, setApiToken] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -57,6 +61,14 @@ export default function ConnectionsPage() {
       Toast.error(errorMessage(error, t('settings.connections.revokeError')));
     }
   };
+
+  const regenerateApiToken = async () => {
+    setApiTokenLoading(true);
+    let response = await xhrPost('/api/user/settings/api-token', {});
+    setApiToken(response.json.apiToken);
+    setApiTokenLoading(false);
+    Toast.success(t('settings.api-token.regenerated'));
+  }
 
   const columns = [
     {
@@ -110,6 +122,23 @@ export default function ConnectionsPage() {
           columns={columns}
           dataSource={grants}
         />
+      </SegmentPart>
+      <SegmentPart name={t('settings.api-token.title')} helpText={t('settings.api-token.help')}>
+
+        <Popconfirm
+            title={t('settings.api-token.regenerateConfirmTitle')}
+            content={t('settings.api-token.regenerateConfirmText')}
+            okType="danger"
+            onConfirm={() => regenerateApiToken()}
+        >
+          <Button type="danger" icon={<IconRefresh/>} size="large">
+            {t('settings.api-token.regenerate')}
+          </Button>
+        </Popconfirm>
+        <Text type="tertiary" size="small" strong style={{marginLeft: 8}}>
+          {apiTokenLoading && <Spin className="listing-description__spinner" />}
+          {apiToken ?? ''}
+        </Text>
       </SegmentPart>
     </div>
   );

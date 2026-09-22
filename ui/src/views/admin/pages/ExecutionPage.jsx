@@ -49,7 +49,7 @@ export default function ExecutionPage() {
     <div className="settingsShell__page">
       <SegmentPart name={t('settings.searchInterval')} helpText={t('settings.searchIntervalHelp')}>
         <InputNumber
-          min={5}
+          min={1}
           max={1440}
           placeholder={t('settings.searchIntervalPlaceholder')}
           value={form.interval}
